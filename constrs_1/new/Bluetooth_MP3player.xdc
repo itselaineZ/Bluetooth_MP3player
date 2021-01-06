@@ -54,3 +54,6 @@ set_property PACKAGE_PIN E18 [get_ports UART_TXD]
 set_property IOSTANDARD LVCMOS33 [get_ports UART_TXD]
 set_property PACKAGE_PIN P17 [get_ports VOL_SW]
 set_property IOSTANDARD LVCMOS33 [get_ports VOL_SW]
+
+set_property IOSTANDARD LVCMOS33 [get_ports VOL_RST]
+set_property PACKAGE_PIN U11 [get_ports VOL_RST]

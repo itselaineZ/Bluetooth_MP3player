@@ -13,6 +13,7 @@ module mp3play(
     input MP3_DREQ,
 
     input VOL_SW,
+    input VOL_RST,
 
     input UART_RXD,
     output UART_TXD,
@@ -45,20 +46,16 @@ module mp3play(
 
     wire up;
     wire down;
-    wire [15:0] vol = 16'h0000;
+    wire [15:0] vol;
     wire [15:0] volcode;
-    //assign up = bluetooth_up | dir[1];
-    //assign down = bluetooth_down | dir[0];
-    //assign up = dir[1];
-    //assign down = dir[0];
     assign up = bluetooth_up;
     assign down = bluetooth_down;
-    VolSet VolSet_inst(VOL_SW, up, down, vol);
+    VolSet VolSet_inst(VOL_SW, VOL_RST, up, down, vol);
     VolDecoder VolDecoder_inst(vol, volcode);
 
     //assign LED = {14'b00000000000000, dir[1:0]};
     assign LED = volcode;
-    //assign LED = {vol[15:3], ROTATE_SIA, up, down};
+    //assign LED = {vol[15:4], VOL_RST, VOL_SW, up, down};
 
     /*---switch set---*/
     reg [2:0] pre_sw = 0;
@@ -68,7 +65,7 @@ module mp3play(
     assign next = bluetooth_next;
     SW_Set SW_Set_inst(clk, prev, next, sw);
 
-    /*---data read---
+    /*---data read---*/
     wire [31:0] data[6:0];
     reg [31:0] dat;
     reg [20:0] pos = 0;
@@ -150,7 +147,7 @@ module mp3play(
                             end
                             else    begin
                                 dat <= {data[0][30:0], data[0][31]};//指令非法则默认为第0首歌
-                                MP3_MOSI <= data[0][30];//穿行发送到MP3
+                                MP3_MOSI <= data[0][31];//穿行发送到MP3
                             end
                             music_cnt <= 1;//计数，当前音乐数据已经发送了一位
                         end
@@ -209,7 +206,7 @@ module mp3play(
                     end
                 endcase
             end
-    end*/
+    end
 
 
 endmodule

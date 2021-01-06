@@ -2,17 +2,23 @@
 
 module VolSet(
     input VOL_SW,
+    input VOL_RST,
     input UP, 
     input DOWN,
-    output reg [15:0] VOL = 16'h0000
+    output reg [15:0] VOL
     );//…˘“Ù¥Û–°…Ë÷√
     reg up;
     reg down;
     
     always@(negedge VOL_SW)begin
         if(!VOL_SW)begin
-            up <= UP;
-            down <= DOWN;
+            up = UP;
+            down = DOWN;
+        end
+        if(VOL_RST)begin
+            VOL = 16'hf0f0;
+            up = 0;
+            down = 0;
         end
         if(up)begin
             VOL <= (VOL == 16'h0000) ? 16'h0000 : (VOL-16'h1010);
