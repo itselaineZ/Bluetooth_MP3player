@@ -28,9 +28,12 @@ module mp3play(
     integer cnt = 0;
     integer cmd_seg_cnt = 0;
     parameter cmd_cnt_mx = 4;
-    reg [31:0] nxt_cmd;
-    reg [127:0] cmd_init = {32'h02000804, 32'h02000804, 32'h020BF0F0, 32'h02000800};
-    reg [127:0] cmd = {32'h02000804, 32'h02000804, 32'h020BF0F0, 32'h02000800};
+    //reg [127:0] cmd_init = {32'h02000804, 32'h02000804, 32'h020BF0F0, 32'h02000800};
+    //reg [127:0] cmd = {32'h02000804, 32'h02000804, 32'h020BF0F0, 32'h02000800};
+    reg [31:0] reset_cmd = 32'h02000804;
+    reg [31:0] vol_cmd = 32'h020Bf0f0;
+    reg [31:0] set_cmd = 32'h02000800;
+    reg [31:0] cur_cmd = 32'h02000804;
     wire [2:0] sw;
 
     /*---bluetooth server---*/
@@ -59,11 +62,11 @@ module mp3play(
 
     /*---switch set---*/
     reg [2:0] pre_sw = 0;
-    wire [2:0] prev;
+    /*wire [2:0] prev;
     wire [2:0] next;
     assign prev = bluetooth_prev;
     assign next = bluetooth_next;
-    SW_Set SW_Set_inst(clk, prev, next, sw);
+    SW_Set SW_Set_inst(clk, RST, prev, next, sw);*/
 
     /*---data read---*/
     wire [31:0] data[6:0];
@@ -92,7 +95,7 @@ module mp3play(
                 MP3_RST <= 0;
                 cmd_seg_cnt <= 0;
                 state <= RSET_OVER;
-                cmd <= cmd_init;
+                cur_cmd <= reset_cmd;
                 MP3_SCLK <= 0;
                 MP3_CS <= 1;
                 MP3_DCS <= 1;
@@ -109,22 +112,26 @@ module mp3play(
                             MP3_CS <= 0;//片选输入，低电平有效，置有效
                             cnt <= 1;//cmd发送一位
                             state <= SEND_CMD;//切换到初始化之后的状态：命令发送（此处是各种寄存器的配置）
-                            MP3_MOSI <= cmd[127];//总线数据输出
-                            cmd <= {cmd[126:0], cmd[127]};//串行数据输出
+                            MP3_MOSI <= cur_cmd[31];//总线数据输出
+                            cur_cmd <= {cur_cmd[30:0], cur_cmd[31]};//串行数据输出
                         end 
                     end
-                    SEND_CMD:   begin//发送命令
+                    SEND_CMD: begin//发送命令
                         if(MP3_DREQ)    begin//数据请求
                             if(MP3_SCLK)    begin//总线时钟线
                                 if(cnt < 32)    begin//串行发送32字节数据
                                     cnt <= cnt+1;
-                                    MP3_MOSI <= cmd[127];//从最高位发送
-                                    cmd <= {cmd[126:0], cmd[127]};
+                                    MP3_MOSI <= cur_cmd[31];//从最高位发送
+                                    cur_cmd <= {cur_cmd[30:0], cur_cmd[31]};
                                 end
                                 else begin//cnt == 32
                                     MP3_CS <= 1;//命令数据片选输入，低电平有效，置无效
                                     cnt <= 0;
                                     cmd_seg_cnt <= cmd_seg_cnt+1;//一段32位发送完毕
+                                    if(cmd_seg_cnt == 2)
+                                        cur_cmd <= vol_cmd;
+                                    else if(cmd_seg_cnt == 2)
+                                        cur_cmd <= set_cmd;
                                     state <= INITIALIZE;//初始化
                                 end
                             end
@@ -132,9 +139,9 @@ module mp3play(
                         end
                     end
                     CHECK:  begin//发送完一波（128位cmd）命令后，进行命令检查
-                        if(vol[15:0] != cmd_init[47:32])    begin
-                            state <= VOL_SET_PRE;
-                            nxt_cmd <= {16'h020B, vol[15:0]}; //设置音量数据，计入下一命令中，32位，送入MP3
+                        if(vol[15:0] != vol_cmd[15:0])    begin
+                            state <= SEND_CMD;
+                            vol_cmd <= {16'h020B, vol[15:0]}; //设置音量数据，计入下一命令中，32位，送入MP3
                         end
                         else if(MP3_DREQ)   begin//数据请求
                             MP3_DCS <= 0;//音乐数据片选，字节同步，低电平有效，置有效（高电平中断传输， 强制standby空闲）
@@ -150,7 +157,6 @@ module mp3play(
                             end
                             cnt <= 1;//计数，当前音乐数据已经发送了一位
                         end
-                        cmd_init[47:32] <= vol;//记录最新修改后的音量数据
                     end
                     DATA_SEND:  begin//发送音乐数据
                         if(MP3_SCLK)    begin//总线时钟高电平
@@ -176,13 +182,13 @@ module mp3play(
                             MP3_RST <= 1;//MP3复位，低电平有效，置无效
                         end
                     end
-                    VOL_SET_PRE:    begin//音量修改准备模式
+                    /*VOL_SET_PRE:    begin//音量修改准备模式
                         if(MP3_DREQ)    begin//数据请求
                             MP3_CS <= 0;//命令片选输入，低电平有效，置有效（高电平结束当前操作，强制standby）
                             cnt <= 1;//当前发送了一位命令
                             state <= VOL_SET;//进入音量设置模式
-                            MP3_MOSI <= nxt_cmd[31];//发送下一命令
-                            nxt_cmd <= {nxt_cmd[30:0], nxt_cmd[31]};//串行发送下一命令
+                            MP3_MOSI <= vol_cmd[31];//发送下一命令
+                            vol_cmd <= {vol_cmd[30:0], vol_cmd[31]};//串行发送下一命令
                         end
                     end
                     VOL_SET:    begin//音量设置模式
@@ -190,8 +196,8 @@ module mp3play(
                             if(MP3_SCLK)    begin//总线时钟
                                 if(cnt < 32)    begin//串行发送32位命令
                                     cnt <= cnt+1;
-                                    MP3_MOSI <= nxt_cmd[31];//串行发送下一命令
-                                    nxt_cmd <= {nxt_cmd[30:0], nxt_cmd[31]};
+                                    MP3_MOSI <= vol_cmd[31];//串行发送下一命令
+                                    vol_cmd <= {vol_cmd[30:0], vol_cmd[31]};
                                 end
                                 else    begin//cnt == 1下一命令发送完毕
                                     MP3_CS <= 1;//命令片选输入，低电平有效，置无效，强制结束当前操作进入standby模式
@@ -201,7 +207,7 @@ module mp3play(
                             end
                             MP3_SCLK <= ~MP3_SCLK;//总线时钟计时
                         end
-                    end
+                    end*/
                 endcase
             end
     end
