@@ -10,11 +10,11 @@ module SW_Set(
     always @(negedge CLK) begin
         if(sw_delay == 0) begin
             if(PREV) begin
-                sw_delay <= 50000;
+                sw_delay <= 500000;
                 SW <= SW - PREV;
             end
             else if(NEXT) begin
-                sw_delay <= 50000;
+                sw_delay <= 500000;
                 SW <= SW + NEXT;
             end
         end

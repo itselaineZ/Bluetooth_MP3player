@@ -47,7 +47,7 @@ module bluetooth(
             end
         else if(rxd_data == 8'b0000_0110)  begin
                 if(SW >= 1) begin
-                    PREV = SW-1;
+                    PREV <= SW-1;
                     NEXT <= 0;
                 end
                 else begin
@@ -57,7 +57,7 @@ module bluetooth(
             end
         else if(rxd_data == 8'b0000_0111)  begin
                 if(SW >= 2) begin
-                    PREV = SW-2;
+                    PREV <= SW-2;
                     NEXT <= 0;
                 end
                 else begin
@@ -67,7 +67,7 @@ module bluetooth(
             end
         else if(rxd_data == 8'b0000_1000)  begin
                 if(SW >= 3) begin
-                    PREV = SW-3;
+                    PREV <= SW-3;
                     NEXT <= 0;
                 end
                 else begin
@@ -82,7 +82,7 @@ module bluetooth(
                 end
                 else begin
                     PREV <= 0;
-                    NEXT <= 4-SW;
+                    NEXT = 4-SW;
                 end
             end
         else if(rxd_data == 8'b0000_1010)  begin
@@ -92,7 +92,7 @@ module bluetooth(
                 end
                 else begin
                     PREV <= 0;
-                    NEXT <= 5-SW;
+                    NEXT = 5-SW;
                 end
             end
         else if(rxd_data == 8'b0000_1011)  begin
@@ -102,7 +102,7 @@ module bluetooth(
                 end
                 else begin
                     PREV <= 0;
-                    NEXT <= 6-SW;
+                    NEXT = 6-SW;
                 end
             end
         else    begin
