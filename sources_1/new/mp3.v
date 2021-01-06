@@ -30,8 +30,8 @@ module mp3play(
     integer cmd_seg_cnt = 0;
     parameter cmd_cnt_mx = 4;
     reg [31:0] nxt_cmd;
-    reg [127:0] cmd_init = {32'h02000804, 32'h02000804, 32'h020BF0F0, 32'h02000800};
-    reg [127:0] cmd = {32'h02000804, 32'h02000804, 32'h020BF0F0, 32'h02000800};
+    reg [127:0] cmd_init = {32'h02000804, 32'h02000804, 32'h020BE0E0, 32'h02000800};
+    reg [127:0] cmd = {32'h02000804, 32'h02000804, 32'h020BE0E0, 32'h02000800};
     wire [2:0] sw;
 
     /*---bluetooth server---*/
@@ -54,9 +54,8 @@ module mp3play(
     VolDecoder VolDecoder_inst(vol, volcode);
 
     //assign LED = {14'b00000000000000, dir[1:0]};
-    //assign LED = volcode;
+    assign LED = volcode;
     //assign LED = {vol[15:4], VOL_RST, VOL_SW, up, down};
-    assign LED = {vol[15:6], pre_sw[2:0], sw[2:0]};
 
     /*---switch set---*/
     reg [2:0] pre_sw = 0;
@@ -185,7 +184,7 @@ module mp3play(
                             cmd_cnt <= 1;//当前发送了一位命令
                             state <= VOL_SET;//进入音量设置模式
                             MP3_MOSI <= nxt_cmd[31];//发送下一命令
-                            nxt_cmd <= {nxt_cmd[30:0], nxt_cmd[31]};//串行发送下一命令
+                            nxt_cmd = {nxt_cmd[30:0], nxt_cmd[31]};//串行发送下一命令
                         end
                     end
                     VOL_SET:    begin//音量设置模式
@@ -194,7 +193,7 @@ module mp3play(
                                 if(cmd_cnt < 32)    begin//串行发送32位命令
                                     cmd_cnt <= cmd_cnt+1;
                                     MP3_MOSI <= nxt_cmd[31];//串行发送下一命令
-                                    nxt_cmd <= {nxt_cmd[30:0], nxt_cmd[31]};
+                                    nxt_cmd = {nxt_cmd[30:0], nxt_cmd[31]};
                                 end
                                 else    begin//cnt == 1下一命令发送完毕
                                     MP3_CS <= 1;//命令片选输入，低电平有效，置无效，强制结束当前操作进入standby模式
@@ -208,4 +207,6 @@ module mp3play(
                 endcase
             end
     end
+
+
 endmodule

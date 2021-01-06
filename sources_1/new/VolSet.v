@@ -12,13 +12,13 @@ module VolSet(
     
     always@(negedge VOL_SW)begin
         if(!VOL_SW)begin
-            up = UP;
-            down = DOWN;
+            up <= UP;
+            down <= DOWN;
         end
         if(VOL_RST)begin
-            VOL = 16'hf0f0;
-            up = 0;
-            down = 0;
+            VOL <= 16'hf0f0;
+            up <= 0;
+            down <= 0;
         end
         if(up)begin
             VOL <= (VOL == 16'h0000) ? 16'h0000 : (VOL-16'h1010);
