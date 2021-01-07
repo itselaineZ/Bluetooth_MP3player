@@ -37,13 +37,11 @@ module mp3play(
     wire [2:0] sw;
 
     /*---bluetooth server---*/
-    wire [2:0] bluetooth_prev;
-    wire [2:0] bluetooth_next;
     wire bluetooth_up;
     wire bluetooth_down;
     wire [7:0] rxd_data;
     wire uart_rxd;
-    bluetooth bluetooth_inst(CLK, RST, UART_RXD, UART_TXD, bluetooth_prev, bluetooth_next, bluetooth_up, bluetooth_down, rxd_data, sw);
+    bluetooth bluetooth_inst(CLK, RST, UART_RXD, UART_TXD, bluetooth_up, bluetooth_down, rxd_data, sw);
     //assign LED = {6'b000000,{bluetooth_down, bluetooth_up}, rxd_data[7:0]};
 
     wire up;
@@ -58,7 +56,7 @@ module mp3play(
     //assign LED = {14'b00000000000000, dir[1:0]};
     //assign LED = volcode;
     //assign LED = {vol[15:4], VOL_RST, VOL_SW, up, down};
-    assign LED = {vol[15:6], pre_sw[2:0], sw[2:0]};
+    assign LED = volcode;
 
     /*---switch set---*/
     reg [2:0] pre_sw = 0;

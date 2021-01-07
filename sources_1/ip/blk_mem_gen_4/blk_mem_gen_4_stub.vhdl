@@ -1,10 +1,10 @@
 -- Copyright 1986-2016 Xilinx, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2016.2 (win64) Build 1577090 Thu Jun  2 16:32:40 MDT 2016
--- Date        : Wed Jan 06 01:59:55 2021
+-- Date        : Thu Jan 07 10:10:48 2021
 -- Host        : ElaineZXY running 64-bit major release  (build 9200)
 -- Command     : write_vhdl -force -mode synth_stub
---               d:/vivado_project/Bluetooth_MP3player/Bluetooth_MP3player.srcs/sources_1/ip/blk_mem_gen_4/blk_mem_gen_4_stub.vhdl
+--               D:/vivado_project/Bluetooth_MP3player/Bluetooth_MP3player.srcs/sources_1/ip/blk_mem_gen_4/blk_mem_gen_4_stub.vhdl
 -- Design      : blk_mem_gen_4
 -- Purpose     : Stub declaration of top-level module interface
 -- Device      : xc7a100tcsg324-1
